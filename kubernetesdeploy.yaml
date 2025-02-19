@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: bankapp-app-container
-        image: ganeshnimmakayala/banking-application
+        image: ganeshnimmakayala/banking-application:v1
         ports:
         - containerPort: 8082
 ---
