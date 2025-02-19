@@ -40,7 +40,8 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    sed -i 's|image: ganeshnimmakayala/banking-application:[^ ]*|image: ganeshnimmakayala/banking-application:latest|' kubernetesdeploy.yaml
+                      sed -i "s|image: ganeshnimmakayala/banking-application:[^ ]*|image: ganeshnimmakayala/banking-application:$BUILD_NUMBER|" kubernetesdeploy.yaml
+
                     '''
                 }
             }
