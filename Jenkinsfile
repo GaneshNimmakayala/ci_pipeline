@@ -63,7 +63,7 @@ pipeline {
                 echo "Building Docker Image"
                 script {
                     docker.withRegistry( '', registry_cred ) { 
-                        myImage = docker.build ${registry}
+                        myImage = docker.build registry
                         myImage.push()
                     }
                 }
