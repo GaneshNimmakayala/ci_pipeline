@@ -69,15 +69,21 @@ pipeline {
                 }
             }
         }
+         stages {
         stage('Run Trivy Scan') {
             steps {
                 script {
-                    // Run Trivy scan
-                    def trivyScanResult = sh(script: 'trivy --no-progress --exit-code 1 --severity HIGH,CRITICAL --quiet --format json /root/workspace/Jenkins_Project/target', returnStdout: true).trim()
+                    // Run Trivy scan and capture the JSON output
+                    def trivyScanResult = sh(script: 'trivy --exit-code 1 --severity HIGH,CRITICAL --quiet --format json /root/workspace/Jenkins_Project/target', returnStdout: true).trim()
 
-                    // Check if the exit code was 1 (indicating issues were found)
-                    if (trivyScanResult.contains("HIGH") || trivyScanResult.contains("CRITICAL")) {
-                        error "Trivy found high or critical severity vulnerabilities. Failing the build."
+                    // Parse the JSON output
+                    def jsonResult = readJSON text: trivyScanResult
+                    
+                    // Check if there are any HIGH or CRITICAL vulnerabilities
+                    def highSeverityFound = jsonResult.find { vuln -> vuln.Vulnerabilities.find { it.Severity == 'HIGH' || it.Severity == 'CRITICAL' } }
+                    
+                    if (highSeverityFound) {
+                        error "High or critical vulnerabilities found in the scan. Failing the build."
                     } else {
                         echo "No high or critical vulnerabilities found."
                     }
@@ -85,6 +91,8 @@ pipeline {
             }
         }
     }
+    }
 }
+                 
 
 
