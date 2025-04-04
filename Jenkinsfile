@@ -69,13 +69,22 @@ pipeline {
                 }
             }
         }
-
-        stage('Scan Image') {
+        stage('Run Trivy Scan') {
             steps {
-                echo "Scanning Image"
-                sh "trivy image --scanners vuln --offline-scan ganeshnimmakayala/jenkinsci:latest > trivyresults.txt"
+                script {
+                    // Run Trivy scan
+                    def trivyScanResult = sh(script: 'trivy --no-progress --exit-code 1 --severity HIGH,CRITICAL --quiet --format json /root/workspace/Jenkins_Project/target', returnStdout: true).trim()
+
+                    // Check if the exit code was 1 (indicating issues were found)
+                    if (trivyScanResult.contains("HIGH") || trivyScanResult.contains("CRITICAL")) {
+                        error "Trivy found high or critical severity vulnerabilities. Failing the build."
+                    } else {
+                        echo "No high or critical vulnerabilities found."
+                    }
+                }
             }
         }
     }
 }
+
 
