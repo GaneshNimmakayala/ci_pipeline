@@ -73,12 +73,12 @@ pipeline {
             steps {
                 script {
                   echo "Scanning Docker Image"
-                  sh "trivy image --scanners vuln --offline-scan ganeshnimmakayala/jenkinsci > trivyresults.txt
+                  sh "trivy image --scanners vuln --offline-scan ganeshnimmakayala/jenkinsci:latest > trivyresults.txt"
         }
     
-    }
-}
-    }
+     }
+  } 
+ }
 }
                  
 
