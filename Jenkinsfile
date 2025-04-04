@@ -1,57 +1,73 @@
 pipeline {
-    agent { label 'Baking_slave' }
+    agent { label 'slave' }
 
     environment {    
-        DOCKERHUB_CREDENTIALS = credentials('Baking_Docker')
+        registry = "ganeshnimmakayala/jenkinsci"
+        registry_cred = "docker_hub"
     }
 
     stages {
-        stage('SCM_Checkout') {
+        stage('Checkout') {
             steps {
-                echo "Perform SCM Checkout"
-                git 'https://github.com/GaneshNimmakayala/Banking_Project.git'               
+                echo "Performing SCM Checkout"
+                git branch: 'master', url: 'https://github.com/GaneshNimmakayala/Banking_Project.git'       
             }
         }
+    }
         stage('Application Build') {
             steps {
-                echo "Perform Application Build"
+                echo "Building Package"
                 sh 'mvn clean package'
             }
         }
-        stage('Build Docker Image') {
+        stage('Code Coverage') {
             steps {
-                sh 'docker version'
-                sh "docker build -t ganeshnimmakayala/banking-application:${BUILD_NUMBER} ."
-                sh 'docker image list'
-                sh "docker tag ganeshnimmakayala/banking-application:${BUILD_NUMBER} ganeshnimmakayala/banking-application:latest"
+               echo "Running Code Coverage"
+               sh "mvn jacoco:report"
             }
         }
-        stage('Login to Docker Hub') {
+        stage('SCA') {
             steps {
-                sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                echo "Running SCA"
+                sh "mvn org.owasp:dependency-check-maven:check"
             }
         }
-        stage('Publish to Docker Registry') {
+        stage('SAST') {
             steps {
-                sh "docker push ganeshnimmakayala/banking-application:latest"
+                echo "Running SAST"
+                withSonarQubeEnv('sonarqube_server1'){
+                    sh 'mvn sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html -Dsonar.projectName=Ganesh'
+                }  
             }
         }
-        stage('Update deployment.yaml') {
+        stage('Quality Gates') {
             steps {
+                echo "Running QualityGate in Sonarqube"
                 script {
-                    sh '''
-                      sed -i "s|image: ganeshnimmakayala/banking-application:[^ ]*|image: ganeshnimmakayala/banking-application:$BUILD_NUMBER|" kubernetesdeploy.yaml
-
-                    '''
+                   timeout(time:1, unit: 'MINUTES'){
+                       def qg = waitForQualityGate()
+                       if (qg.status != 'OK') {
+                           error "Pipeline aborted due to quality gate failure: $(qg.status)"
+                       }
+                   }
                 }
             }
         }
-        stage('Deploy to Kubernetes Cluster') {
+        stage('Build Image') {
             steps {
+                echo "Building Docker Image"
                 script {
-                    sshPublisher(publishers: [sshPublisherDesc(configName: 'Kubernetes', transfers: [sshTransfer(cleanRemote: false, excludes: '', execCommand: '', execTimeout: 120000, flatten: false, makeEmptyDirs: false, noDefaultExcludes: false, patternSeparator: '[, ]+', remoteDirectory: '.', remoteDirectorySDF: false, removePrefix: '', sourceFiles: '*.yaml')], usePromotionTimestamp: false, useWorkspaceInPromotion: false, verbose: false)])
+                    docker.withRegistry( '', registry_cred ) { 
+                        myImage = docker.build registry
+                        myImage.push()
                 }
             }
+        }
+    }
+    stage('Scan Image') {
+        steps {
+            echo "Scaning Image"
+            sh "trivy image --scanners vuln --offline-scan ganeshnimmakayala/jenkinsci:latest > trivyresults.txt"
         }
     }
 }
