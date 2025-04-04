@@ -69,7 +69,6 @@ pipeline {
                 }
             }
         }
-         stages {
         stage('Run Trivy Scan') {
             steps {
                 script {
@@ -90,7 +89,7 @@ pipeline {
                 }
             }
         }
-    }
+    
     }
 }
                  
