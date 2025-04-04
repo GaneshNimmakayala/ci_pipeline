@@ -13,25 +13,28 @@ pipeline {
                 git branch: 'master', url: 'https://github.com/GaneshNimmakayala/Banking_Project.git'       
             }
         }
-    }
+
         stage('Application Build') {
             steps {
                 echo "Building Package"
                 sh 'mvn clean package'
             }
         }
+
         stage('Code Coverage') {
             steps {
                echo "Running Code Coverage"
                sh "mvn jacoco:report"
             }
         }
+
         stage('SCA') {
             steps {
                 echo "Running SCA"
                 sh "mvn org.owasp:dependency-check-maven:check"
             }
         }
+
         stage('SAST') {
             steps {
                 echo "Running SAST"
@@ -40,6 +43,7 @@ pipeline {
                 }  
             }
         }
+
         stage('Quality Gates') {
             steps {
                 echo "Running QualityGate in Sonarqube"
@@ -53,21 +57,25 @@ pipeline {
                 }
             }
         }
+
         stage('Build Image') {
             steps {
                 echo "Building Docker Image"
                 script {
                     docker.withRegistry( '', registry_cred ) { 
-                        myImage = docker.build registry
+                        myImage = docker.build("${registry}:latest")
                         myImage.push()
+                    }
                 }
             }
         }
-    }
-    stage('Scan Image') {
-        steps {
-            echo "Scaning Image"
-            sh "trivy image --scanners vuln --offline-scan ganeshnimmakayala/jenkinsci:latest > trivyresults.txt"
+
+        stage('Scan Image') {
+            steps {
+                echo "Scanning Image"
+                sh "trivy image --scanners vuln --offline-scan ganeshnimmakayala/jenkinsci:latest > trivyresults.txt"
+            }
         }
     }
 }
+
