@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'slave' }
+    agent any
 
     environment {    
         registry = "ganeshnimmakayala/jenkinsci"
