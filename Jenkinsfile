@@ -38,7 +38,7 @@ pipeline {
         stage('SAST') {
             steps {
                 echo "Running SAST"
-                withSonarQubeEnv('sonarqube_server1'){
+                withSonarQubeEnv('Sonarserver'){
                     sh 'mvn sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml -Dsonar.dependencyCheck.jsonReportPath=target/dependency-check-report.json -Dsonar.dependencyCheck.htmlReportPath=target/dependency-check-report.html -Dsonar.projectName=Ganesh'
                 }  
             }
