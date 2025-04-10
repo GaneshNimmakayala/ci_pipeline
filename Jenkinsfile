@@ -3,7 +3,7 @@ pipeline {
 
     environment {    
         registry = "ganeshnimmakayala/jenkinsci"
-        registry_cred = "docker_hub"
+        registry_cred = "registry_cred"
     }
 
     stages {
