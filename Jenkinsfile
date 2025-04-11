@@ -62,8 +62,10 @@ pipeline {
             steps {
                 echo "Building Docker Image"
                 script {
+                     def imageName = "ganeshnimmakayala/jenkinsci"
+                     def imageTag = "${BUILD_NUMBER}"
                     docker.withRegistry( '', registry_cred ) { 
-                        myImage = docker.build registry
+                        def myImage = docker.build("${imageName}:${imageTag}")
                         myImage.push()
                     }
                 }
