@@ -76,11 +76,16 @@ pipeline {
                 script {
                   echo "Scanning Docker Image"
                   sh "trivy image --scanners vuln --offline-scan ganeshnimmakayala/jenkinsci:latest > trivyresults.txt"
-        }
+                    }
     
-     }
-  } 
- }
+           }
+         } 
+        stage('Trigger cd-pipeline') {
+            steps {
+                build job: 'CD_PIPELINE'
+            }
+        }
+    }
 }
                  
 
