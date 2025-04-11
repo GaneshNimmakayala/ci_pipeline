@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'Slave'}
 
-    environment {    
+    environment {   
         registry = "ganeshnimmakayala/jenkinsci"
         registry_cred = "docker_hub"
     }
