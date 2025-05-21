@@ -8,7 +8,9 @@ pipeline {
         registry = "ganeshnimmakayala/jenkinsci"
         registry_cred = "docker_hub"
     }
-
+    parameters{
+        choice(Name: 'Choose version below', choices [ '1', '2', '3' ], description: 'version of the code')
+    }
     stages {
         stage('Checkout') {
             steps {
