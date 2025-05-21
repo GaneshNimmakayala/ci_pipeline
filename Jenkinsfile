@@ -9,7 +9,7 @@ pipeline {
         registry_cred = "docker_hub"
     }
     parameters{
-        choice(name: 'Choose version below', choices [ '1', '2', '3' ], description: 'version of the code')
+        choice(name: 'Choose version below', choices: [ '1', '2', '3' ], description: 'version of the code')
     }
     stages {
         stage('Checkout') {
